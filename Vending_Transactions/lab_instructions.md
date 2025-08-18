@@ -35,7 +35,7 @@ Copy and paste the code from the vending_lab_example_query.sql file you have int
 
 Run the following queries just like you would in worksheets.
 
-USE WAREHOUSE vending_dbt_wh;
+USE WAREHOUSE vending_machine_dbt_wh;
 USE ROLE accountadmin;
 
 -- What tables exist?
@@ -59,9 +59,9 @@ SELECT
         ELSE '55+'
     END AS age_group,
     AVG(sf.satisfaction_score) AS average_satisfaction
-FROM vending_dbt_db.raw.survey_feedback sf
+FROM vending_machine_dbt_db.raw.survey_feedback sf
 
-JOIN vending_dbt_db.raw.customer_details c
+JOIN vending_machine_dbt_db.raw.customer_details c
     ON sf.customer_id = c.customer_id
 
 GROUP BY age_group
@@ -75,9 +75,9 @@ Click the workspace dropdown > Create Workspace From Git Repository.
 
 In the popup, enter the following fields:
 
-Repository URL: https://github.com/Snowflake-Labs/getting-started-with-dbt-on-snowflake.git
+Repository URL: https://github.com/mcpurcell01/getting-started-with-dbt-on-snowflake.git
 
-Workspace Name: Vending-machine-dbt-Project
+Workspace Name: Vending-Machine-dbt-Project
 
 API Integration: GIT_INTEGRATION (Note: the API Integration has already been configured for you.)
 
@@ -190,9 +190,9 @@ Click Deploy in the top right of workspaces.
 
 Ensure your role is accountadmin.
 
-Select database vending_dbt_db and schema dev.
+Select database vending_machine_dbt_db and schema dev.
 
-Name it dbt_vending_project.
+Name it dbt_vending_machine_project.
 
 Click Deploy!
 
@@ -207,7 +207,7 @@ You can get an overview of dbt project status from the dbt Projects activity in 
 Create Scheduled dbt Tasks
 Let's create tasks to regularly run and test our dbt project.
 
-Click dbt_vending_project in the top right corner of Workspaces.
+Click dbt_vending_machine_project in the top right corner of Workspaces.
 
 Click Create Schedule from the dropdown.
 
@@ -216,12 +216,12 @@ Enter a name, schedule, and profile, then click Create.
 ### Complex Tasks and Alerts
 We can create a more complex task structure with the script below. It creates a task DAG and alerts us when there is a test failure. Copy the script below into a new SQL file and run the commands one by one. Note that the alert will fail unless you have verified your email. To verify your email, click on the user icon in the bottom left of the screen > Profile > enter your email > click the link in your email.
 
-USE WAREHOUSE vending_dbt_wh;
+USE WAREHOUSE vending_machine_dbt_wh;
 USE ROLE accountadmin;
 
 CREATE OR REPLACE TASK vending_machine_dbt_db.dev.dbt_deps_task
 
-    WAREHOUSE=VENDING_DBT_WH
+    WAREHOUSE=VENDING_MACHINE_DBT_WH
     SCHEDULE='60 MINUTES'
     AS EXECUTE DBT PROJECT "VENDING_MACHINE_DBT_DB"."DEV"."DBT_VENDING_MACHINE_PROJECT" args='deps --target dev' external_access_integrations = (DBT_ACCESS_INTEGRATION);
 
@@ -229,7 +229,7 @@ CREATE OR REPLACE TASK vending_machine_dbt_db.dev.dbt_deps_task
 CREATE OR REPLACE TASK vending_machine_dbt_db.dev.dbt_run_task
 
     WAREHOUSE=VENDING_MACHINE_DBT_WH
-    AFTER vending_macbine_dbt_db.dev.dbt_deps_task
+    AFTER vending_machine_dbt_db.dev.dbt_deps_task
     AS EXECUTE DBT PROJECT "VENDING_MACHINE_DBT_DB"."DEV"."DBT_VENDING_MACHINE_PROJECT" args='run --target dev';
 
 
@@ -275,7 +275,7 @@ schedule='60 MINUTES'
             SCHEDULED_TIME_RANGE_START => (greatest(timeadd('DAY', -7, current_timestamp),  SNOWFLAKE.ALERT.LAST_SUCCESSFUL_SCHEDULED_TIME())),
             SCHEDULED_TIME_RANGE_END => SNOWFLAKE.ALERT.SCHEDULED_TIME(),
             ERROR_ONLY => True)) 
-    WHERE database_name = 'VENDING_DBT_DB'
+    WHERE database_name = 'VENDING_MACHINE_DBT_DB'
         )
     ) 
     
@@ -301,7 +301,7 @@ THEN
     END;;
 
 -- Execute once
-EXECUTE ALERT vending_dbt_db.dev.dbt_alert;
+EXECUTE ALERT vending_machine_dbt_db.dev.dbt_alert;
 
 You can view the status of running tasks by going to Monitoring > Task History.
 
