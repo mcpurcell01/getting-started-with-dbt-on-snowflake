@@ -5,4 +5,4 @@ SELECT
     product_name,
     product_category,
     unit_price
-FROM {{ source('vending_dbt_db', 'PRODUCT_DETAILS') }}
+FROM {{ source('vending_machine_dbt_db', 'PRODUCT_DETAILS') }}
