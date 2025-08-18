@@ -9,7 +9,7 @@ CREATE OR REPLACE WAREHOUSE vending_machine_dbt_wh
     INITIALLY_SUSPENDED = TRUE
     COMMENT = 'Warehouse for vending machine dbt demo';
 
-USE WAREHOUSE vending_dbt_wh;
+USE WAREHOUSE vending_machine_dbt_wh;
 
 -- Create the database and schemas
 CREATE DATABASE IF NOT EXISTS vending_machine_dbt_db;
@@ -32,7 +32,7 @@ CREATE OR REPLACE API INTEGRATION git_integration
   API_ALLOWED_PREFIXES = ('https://github.com/')
   ENABLED = TRUE;
 
-CREATE OR REPLACE NETWORK RULE vending_dbt_db.public.dbt_network_rule
+CREATE OR REPLACE NETWORK RULE vending_machine_dbt_db.public.dbt_network_rule
   MODE = EGRESS
   TYPE = HOST_PORT
   VALUE_LIST = ('hub.getdbt.com', 'codeload.github.com');
@@ -48,7 +48,6 @@ type = 'csv';
 
 CREATE OR REPLACE STAGE vending_machine_dbt_db.public.s3load
 COMMENT = 'Vending Machine S3 Stage Connection'
--- url = 's3://sfquickstarts/vending_machine/' -- This URL is a placeholder
 file_format = vending_machine_dbt_db.public.csv_ff;
 
 
@@ -120,7 +119,6 @@ COMMENT = 'Raw data for customer details.';
 
 -- Load the VENDING_TRANSACTIONS table
 COPY INTO vending_machine_dbt_db.raw.vending_transactions
---FROM @vending_dbt_db.public.s3load/vending_transactions/;
 FROM @vending_machine_dbt_db.public.s3load/vending_transactions.csv;
 
 -- Load the PRODUCT_DETAILS table
