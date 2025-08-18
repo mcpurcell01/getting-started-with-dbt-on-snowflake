@@ -4,4 +4,4 @@ SELECT
     transaction_id,
     customer_id,
     satisfaction_score
-FROM {{ source('vending_dbt_db', 'SURVEY_FEEDBACK') }}
+FROM {{ source('vending_machine_dbt_db', 'SURVEY_FEEDBACK') }}
