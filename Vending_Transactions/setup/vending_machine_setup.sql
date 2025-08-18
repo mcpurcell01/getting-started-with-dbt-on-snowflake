@@ -3,24 +3,29 @@ USE ROLE accountadmin;
 -- Set a variable to store the current user's name
 SET CURRENT_USER_NAME = (SELECT CURRENT_USER());
 
+set wh_name = ($CURRENT_USER_NAME || '_vending_machine_dbt_wh');
+set db_name = ($CURRENT_USER_NAME || '_vending_machine_dbt_db');
+set wh_comment = ('Warehouse for vending machine dbt demo for ' || $CURRENT_USER_NAME);
+
+
 -- Use the variable to create a unique warehouse for the current user.
-CREATE OR REPLACE WAREHOUSE IDENTIFIER($CURRENT_USER_NAME || '_vending_machine_dbt_wh')
+CREATE OR REPLACE WAREHOUSE IDENTIFIER($wh_name)
     WAREHOUSE_SIZE = 'small'
     WAREHOUSE_TYPE = 'standard'
     AUTO_SUSPEND = 60
     AUTO_RESUME = TRUE
     INITIALLY_SUSPENDED = TRUE
-    COMMENT = 'Warehouse for vending machine dbt demo for ' || $CURRENT_USER_NAME;
+    COMMENT = $wh_comment;
 
 -- Set the context to use the unique warehouse
-USE WAREHOUSE IDENTIFIER($CURRENT_USER_NAME || '_vending_machine_dbt_wh');
+USE WAREHOUSE IDENTIFIER($wh_name);
 
 -- Use the variable to create a unique database for the current user.
-CREATE DATABASE IF NOT EXISTS IDENTIFIER($CURRENT_USER_NAME || '_vending_machine_dbt_db');
+CREATE DATABASE IF NOT EXISTS IDENTIFIER($db_name);
 
 -- All subsequent schemas and tables will be created within this unique database,
 -- so you don't need to add the user name to their names.
-USE DATABASE IDENTIFIER($CURRENT_USER_NAME || '_vending_machine_dbt_db');
+USE DATABASE IDENTIFIER($db_name);
 
 -- Create the schemas
 CREATE OR REPLACE SCHEMA raw;
@@ -149,4 +154,4 @@ COPY INTO raw.customer_details
 FROM @public.s3load/customer_details.csv;
 
 -- setup completion note
-SELECT 'vending_machine_dbt_db setup is now complete' AS note;
+SELECT CONCAT(UPPER(CONCAT($db_name,'_vending_machine_dbt_db')),' setup is now complete') AS note;
