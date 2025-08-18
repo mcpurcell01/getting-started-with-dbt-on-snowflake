@@ -38,7 +38,7 @@ CREATE OR REPLACE NETWORK RULE vending_dbt_db.public.dbt_network_rule
   VALUE_LIST = ('hub.getdbt.com', 'codeload.github.com');
 
 CREATE OR REPLACE EXTERNAL ACCESS INTEGRATION dbt_access_integration
-  ALLOWED_NETWORK_RULES = (vending_dbt_db.public.dbt_network_rule)
+  ALLOWED_NETWORK_RULES = (vending_machine_dbt_db.public.dbt_network_rule)
   ENABLED = true;
 
 -- Create a file format and external stage for loading data
@@ -49,7 +49,7 @@ type = 'csv';
 CREATE OR REPLACE STAGE vending_machine_dbt_db.public.s3load
 COMMENT = 'Vending Machine S3 Stage Connection'
 -- url = 's3://sfquickstarts/vending_machine/' -- This URL is a placeholder
-file_format = vending_dbt_db.public.csv_ff;
+file_format = vending_machine_dbt_db.public.csv_ff;
 
 
 /*--
@@ -125,22 +125,18 @@ FROM @vending_machine_dbt_db.public.s3load/vending_transactions.csv;
 
 -- Load the PRODUCT_DETAILS table
 COPY INTO vending_machine_dbt_db.raw.product_details
---FROM @vending_dbt_db.public.s3load/product_details/;
 FROM @vending_machine_dbt_db.public.s3load/product_details.csv;
 
 -- Load the SURVEY_FEEDBACK table
 COPY INTO vending_machine_dbt_db.raw.survey_feedback
---FROM @vending_dbt_db.public.s3load/survey_feedback/;
 FROM @vending_machine_dbt_db.public.s3load/survey_feedback.csv;
 
 -- Load the VENDING_MACHINES table
 COPY INTO vending_machine_dbt_db.raw.vending_machines
--- FROM @vending_dbt_db.public.s3load/vending_machines/;
 FROM @vending_machine_dbt_db.public.s3load/vending_machines.csv;
 
 -- Load the CUSTOMER_DETAILS table
 COPY INTO vending_machine_dbt_db.raw.customer_details
---FROM @vending_dbt_db.public.s3load/customer_details/;
 FROM @vending_machine_dbt_db.public.s3load/customer_details.csv;
 
 -- setup completion note
