@@ -1,7 +1,7 @@
 USE ROLE accountadmin;
 
 -- Create the warehouse for your dbt project
-CREATE OR REPLACE WAREHOUSE vending_dbt_wh
+CREATE OR REPLACE WAREHOUSE vending_machine_dbt_wh
     WAREHOUSE_SIZE = 'small'
     WAREHOUSE_TYPE = 'standard'
     AUTO_SUSPEND = 60
@@ -12,19 +12,19 @@ CREATE OR REPLACE WAREHOUSE vending_dbt_wh
 USE WAREHOUSE vending_dbt_wh;
 
 -- Create the database and schemas
-CREATE DATABASE IF NOT EXISTS vending_dbt_db;
-CREATE OR REPLACE SCHEMA vending_dbt_db.raw;
-CREATE OR REPLACE SCHEMA vending_dbt_db.dev;
-CREATE OR REPLACE SCHEMA vending_dbt_db.prod;
+CREATE DATABASE IF NOT EXISTS vending_machine_dbt_db;
+CREATE OR REPLACE SCHEMA vending_machine_dbt_db.raw;
+CREATE OR REPLACE SCHEMA vending_machine_dbt_db.dev;
+CREATE OR REPLACE SCHEMA vending_machine_dbt_db.prod;
 
 -- Set up logging and tracing for schemas
-ALTER SCHEMA vending_dbt_db.dev SET LOG_LEVEL = 'INFO';
-ALTER SCHEMA vending_dbt_db.dev SET TRACE_LEVEL = 'ALWAYS';
-ALTER SCHEMA vending_dbt_db.dev SET METRIC_LEVEL = 'ALL';
+ALTER SCHEMA vending_machine_dbt_db.dev SET LOG_LEVEL = 'INFO';
+ALTER SCHEMA vending_machine_dbt_db.dev SET TRACE_LEVEL = 'ALWAYS';
+ALTER SCHEMA vending_machine_dbt_db.dev SET METRIC_LEVEL = 'ALL';
 
-ALTER SCHEMA vending_dbt_db.prod SET LOG_LEVEL = 'INFO';
-ALTER SCHEMA vending_dbt_db.prod SET TRACE_LEVEL = 'ALWAYS';
-ALTER SCHEMA vending_dbt_db.prod SET METRIC_LEVEL = 'ALL';
+ALTER SCHEMA vending_machine_dbt_db.prod SET LOG_LEVEL = 'INFO';
+ALTER SCHEMA vending_machine_dbt_db.prod SET TRACE_LEVEL = 'ALWAYS';
+ALTER SCHEMA vending_machine_dbt_db.prod SET METRIC_LEVEL = 'ALL';
 
 -- Create the API integrations and network rules for dbt to function
 CREATE OR REPLACE API INTEGRATION git_integration
@@ -42,12 +42,13 @@ CREATE OR REPLACE EXTERNAL ACCESS INTEGRATION dbt_access_integration
   ENABLED = true;
 
 -- Create a file format and external stage for loading data
-CREATE OR REPLACE FILE FORMAT vending_dbt_db.public.csv_ff
+CREATE OR REPLACE FILE FORMAT vending_machine_dbt_db.public.csv_ff
+skip_header=1
 type = 'csv';
 
-CREATE OR REPLACE STAGE vending_dbt_db.public.s3load
+CREATE OR REPLACE STAGE vending_machine_dbt_db.public.s3load
 COMMENT = 'Vending Machine S3 Stage Connection'
-url = 's3://sfquickstarts/vending_machine/' -- This URL is a placeholder
+-- url = 's3://sfquickstarts/vending_machine/' -- This URL is a placeholder
 file_format = vending_dbt_db.public.csv_ff;
 
 
@@ -56,7 +57,7 @@ file_format = vending_dbt_db.public.csv_ff;
 --*/
 
 -- Create the VENDING_TRANSACTIONS table
-CREATE OR REPLACE TABLE vending_dbt_db.raw.vending_transactions
+CREATE OR REPLACE TABLE vending_machine_dbt_db.raw.vending_transactions
 (
     transaction_id VARCHAR(16777216),
     vending_machine_id VARCHAR(16777216),
@@ -70,7 +71,7 @@ CREATE OR REPLACE TABLE vending_dbt_db.raw.vending_transactions
 COMMENT = 'Raw data for vending machine transactions.';
 
 -- Create the PRODUCT_DETAILS table
-CREATE OR REPLACE TABLE vending_dbt_db.raw.product_details
+CREATE OR REPLACE TABLE vending_machine_dbt_db.raw.product_details
 (
     product_id VARCHAR(16777216),
     product_name VARCHAR(16777216),
@@ -80,7 +81,7 @@ CREATE OR REPLACE TABLE vending_dbt_db.raw.product_details
 COMMENT = 'Raw data for product details.';
 
 -- Create the SURVEY_FEEDBACK table
-CREATE OR REPLACE TABLE vending_dbt_db.raw.survey_feedback
+CREATE OR REPLACE TABLE vending_machine_dbt_db.raw.survey_feedback
 (
     survey_id VARCHAR(16777216),
     transaction_id VARCHAR(16777216),
@@ -90,7 +91,7 @@ CREATE OR REPLACE TABLE vending_dbt_db.raw.survey_feedback
 COMMENT = 'Raw data from customer satisfaction surveys.';
 
 -- Create the VENDING_MACHINES table
-CREATE OR REPLACE TABLE vending_dbt_db.raw.vending_machines
+CREATE OR REPLACE TABLE vending_machine_dbt_db.raw.vending_machines
 (
     vending_machine_id VARCHAR(16777216),
     location_city VARCHAR(16777216),
@@ -100,7 +101,7 @@ CREATE OR REPLACE TABLE vending_dbt_db.raw.vending_machines
 COMMENT = 'Raw data for vending machines.';
 
 -- Create the CUSTOMER_DETAILS table
-CREATE OR REPLACE TABLE vending_dbt_db.raw.customer_details
+CREATE OR REPLACE TABLE vending_machine_dbt_db.raw.customer_details
 (
     customer_id VARCHAR(16777216),
     age NUMBER(3,0),
@@ -118,24 +119,29 @@ COMMENT = 'Raw data for customer details.';
 -- You will need to replace the URL with the actual location of your data files.
 
 -- Load the VENDING_TRANSACTIONS table
-COPY INTO vending_dbt_db.raw.vending_transactions
-FROM @vending_dbt_db.public.s3load/vending_transactions/;
+COPY INTO vending_machine_dbt_db.raw.vending_transactions
+--FROM @vending_dbt_db.public.s3load/vending_transactions/;
+FROM @vending_machine_dbt_db.public.s3load/vending_transactions.csv;
 
 -- Load the PRODUCT_DETAILS table
-COPY INTO vending_dbt_db.raw.product_details
-FROM @vending_dbt_db.public.s3load/product_details/;
+COPY INTO vending_machine_dbt_db.raw.product_details
+--FROM @vending_dbt_db.public.s3load/product_details/;
+FROM @vending_machine_dbt_db.public.s3load/product_details.csv;
 
 -- Load the SURVEY_FEEDBACK table
-COPY INTO vending_dbt_db.raw.survey_feedback
-FROM @vending_dbt_db.public.s3load/survey_feedback/;
+COPY INTO vending_machine_dbt_db.raw.survey_feedback
+--FROM @vending_dbt_db.public.s3load/survey_feedback/;
+FROM @vending_machine_dbt_db.public.s3load/survey_feedback.csv;
 
 -- Load the VENDING_MACHINES table
-COPY INTO vending_dbt_db.raw.vending_machines
-FROM @vending_dbt_db.public.s3load/vending_machines/;
+COPY INTO vending_machine_dbt_db.raw.vending_machines
+-- FROM @vending_dbt_db.public.s3load/vending_machines/;
+FROM @vending_machine_dbt_db.public.s3load/vending_machines.csv;
 
 -- Load the CUSTOMER_DETAILS table
-COPY INTO vending_dbt_db.raw.customer_details
-FROM @vending_dbt_db.public.s3load/customer_details/;
+COPY INTO vending_machine_dbt_db.raw.customer_details
+--FROM @vending_dbt_db.public.s3load/customer_details/;
+FROM @vending_machine_dbt_db.public.s3load/customer_details.csv;
 
 -- setup completion note
-SELECT 'vending_dbt_db setup is now complete' AS note;
+SELECT 'vending_machine_dbt_db setup is now complete' AS note;
