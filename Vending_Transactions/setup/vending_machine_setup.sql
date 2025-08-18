@@ -1,62 +1,73 @@
 USE ROLE accountadmin;
 
--- Create the warehouse for your dbt project
-CREATE OR REPLACE WAREHOUSE vending_machine_dbt_wh
+-- Set a variable to store the current user's name
+SET CURRENT_USER_NAME = (SELECT CURRENT_USER());
+
+-- Use the variable to create a unique warehouse for the current user.
+CREATE OR REPLACE WAREHOUSE IDENTIFIER($CURRENT_USER_NAME || '_vending_machine_dbt_wh')
     WAREHOUSE_SIZE = 'small'
     WAREHOUSE_TYPE = 'standard'
     AUTO_SUSPEND = 60
     AUTO_RESUME = TRUE
     INITIALLY_SUSPENDED = TRUE
-    COMMENT = 'Warehouse for vending machine dbt demo';
+    COMMENT = 'Warehouse for vending machine dbt demo for ' || $CURRENT_USER_NAME;
 
-USE WAREHOUSE vending_machine_dbt_wh;
+-- Set the context to use the unique warehouse
+USE WAREHOUSE IDENTIFIER($CURRENT_USER_NAME || '_vending_machine_dbt_wh');
 
--- Create the database and schemas
-CREATE DATABASE IF NOT EXISTS vending_machine_dbt_db;
-CREATE OR REPLACE SCHEMA vending_machine_dbt_db.raw;
-CREATE OR REPLACE SCHEMA vending_machine_dbt_db.dev;
-CREATE OR REPLACE SCHEMA vending_machine_dbt_db.prod;
+-- Use the variable to create a unique database for the current user.
+CREATE DATABASE IF NOT EXISTS IDENTIFIER($CURRENT_USER_NAME || '_vending_machine_dbt_db');
+
+-- All subsequent schemas and tables will be created within this unique database,
+-- so you don't need to add the user name to their names.
+USE DATABASE IDENTIFIER($CURRENT_USER_NAME || '_vending_machine_dbt_db');
+
+-- Create the schemas
+CREATE OR REPLACE SCHEMA raw;
+CREATE OR REPLACE SCHEMA dev;
+CREATE OR REPLACE SCHEMA prod;
 
 -- Set up logging and tracing for schemas
-ALTER SCHEMA vending_machine_dbt_db.dev SET LOG_LEVEL = 'INFO';
-ALTER SCHEMA vending_machine_dbt_db.dev SET TRACE_LEVEL = 'ALWAYS';
-ALTER SCHEMA vending_machine_dbt_db.dev SET METRIC_LEVEL = 'ALL';
+ALTER SCHEMA dev SET LOG_LEVEL = 'INFO';
+ALTER SCHEMA dev SET TRACE_LEVEL = 'ALWAYS';
+ALTER SCHEMA dev SET METRIC_LEVEL = 'ALL';
 
-ALTER SCHEMA vending_machine_dbt_db.prod SET LOG_LEVEL = 'INFO';
-ALTER SCHEMA vending_machine_dbt_db.prod SET TRACE_LEVEL = 'ALWAYS';
-ALTER SCHEMA vending_machine_dbt_db.prod SET METRIC_LEVEL = 'ALL';
+ALTER SCHEMA prod SET LOG_LEVEL = 'INFO';
+ALTER SCHEMA prod SET TRACE_LEVEL = 'ALWAYS';
+ALTER SCHEMA prod SET METRIC_LEVEL = 'ALL';
 
--- Create the API integrations and network rules for dbt to function
+-- Create the API integrations and network rules
+-- Fully qualifying these objects for clarity as they are created in the public schema
 CREATE OR REPLACE API INTEGRATION git_integration
   API_PROVIDER = git_https_api
   API_ALLOWED_PREFIXES = ('https://github.com/')
   ENABLED = TRUE;
 
-CREATE OR REPLACE NETWORK RULE vending_machine_dbt_db.public.dbt_network_rule
+CREATE OR REPLACE NETWORK RULE public.dbt_network_rule
   MODE = EGRESS
   TYPE = HOST_PORT
   VALUE_LIST = ('hub.getdbt.com', 'codeload.github.com');
 
 CREATE OR REPLACE EXTERNAL ACCESS INTEGRATION dbt_access_integration
-  ALLOWED_NETWORK_RULES = (vending_machine_dbt_db.public.dbt_network_rule)
+  ALLOWED_NETWORK_RULES = (dbt_network_rule)
   ENABLED = true;
 
 -- Create a file format and external stage for loading data
-CREATE OR REPLACE FILE FORMAT vending_machine_dbt_db.public.csv_ff
+CREATE OR REPLACE FILE FORMAT public.csv_ff
 skip_header=1
 type = 'csv';
 
-CREATE OR REPLACE STAGE vending_machine_dbt_db.public.s3load
+CREATE OR REPLACE STAGE public.s3load
 COMMENT = 'Vending Machine S3 Stage Connection'
-file_format = vending_machine_dbt_db.public.csv_ff;
+file_format = public.csv_ff;
 
 
 /*--
  raw zone table build
 --*/
 
--- Create the VENDING_TRANSACTIONS table
-CREATE OR REPLACE TABLE vending_machine_dbt_db.raw.vending_transactions
+-- Create the VENDING_TRANSACTIONS table in the raw schema
+CREATE OR REPLACE TABLE raw.vending_transactions
 (
     transaction_id VARCHAR(16777216),
     vending_machine_id VARCHAR(16777216),
@@ -69,8 +80,8 @@ CREATE OR REPLACE TABLE vending_machine_dbt_db.raw.vending_transactions
 )
 COMMENT = 'Raw data for vending machine transactions.';
 
--- Create the PRODUCT_DETAILS table
-CREATE OR REPLACE TABLE vending_machine_dbt_db.raw.product_details
+-- Create the PRODUCT_DETAILS table in the raw schema
+CREATE OR REPLACE TABLE raw.product_details
 (
     product_id VARCHAR(16777216),
     product_name VARCHAR(16777216),
@@ -79,8 +90,8 @@ CREATE OR REPLACE TABLE vending_machine_dbt_db.raw.product_details
 )
 COMMENT = 'Raw data for product details.';
 
--- Create the SURVEY_FEEDBACK table
-CREATE OR REPLACE TABLE vending_machine_dbt_db.raw.survey_feedback
+-- Create the SURVEY_FEEDBACK table in the raw schema
+CREATE OR REPLACE TABLE raw.survey_feedback
 (
     survey_id VARCHAR(16777216),
     transaction_id VARCHAR(16777216),
@@ -89,8 +100,8 @@ CREATE OR REPLACE TABLE vending_machine_dbt_db.raw.survey_feedback
 )
 COMMENT = 'Raw data from customer satisfaction surveys.';
 
--- Create the VENDING_MACHINES table
-CREATE OR REPLACE TABLE vending_machine_dbt_db.raw.vending_machines
+-- Create the VENDING_MACHINES table in the raw schema
+CREATE OR REPLACE TABLE raw.vending_machines
 (
     vending_machine_id VARCHAR(16777216),
     location_city VARCHAR(16777216),
@@ -99,8 +110,8 @@ CREATE OR REPLACE TABLE vending_machine_dbt_db.raw.vending_machines
 )
 COMMENT = 'Raw data for vending machines.';
 
--- Create the CUSTOMER_DETAILS table
-CREATE OR REPLACE TABLE vending_machine_dbt_db.raw.customer_details
+-- Create the CUSTOMER_DETAILS table in the raw schema
+CREATE OR REPLACE TABLE raw.customer_details
 (
     customer_id VARCHAR(16777216),
     age NUMBER(3,0),
@@ -118,24 +129,24 @@ COMMENT = 'Raw data for customer details.';
 -- You will need to replace the URL with the actual location of your data files.
 
 -- Load the VENDING_TRANSACTIONS table
-COPY INTO vending_machine_dbt_db.raw.vending_transactions
-FROM @vending_machine_dbt_db.public.s3load/vending_transactions.csv;
+COPY INTO raw.vending_transactions
+FROM @public.s3load/vending_transactions.csv;
 
 -- Load the PRODUCT_DETAILS table
-COPY INTO vending_machine_dbt_db.raw.product_details
-FROM @vending_machine_dbt_db.public.s3load/product_details.csv;
+COPY INTO raw.product_details
+FROM @public.s3load/product_details.csv;
 
 -- Load the SURVEY_FEEDBACK table
-COPY INTO vending_machine_dbt_db.raw.survey_feedback
-FROM @vending_machine_dbt_db.public.s3load/survey_feedback.csv;
+COPY INTO raw.survey_feedback
+FROM @public.s3load/survey_feedback.csv;
 
 -- Load the VENDING_MACHINES table
-COPY INTO vending_machine_dbt_db.raw.vending_machines
-FROM @vending_machine_dbt_db.public.s3load/vending_machines.csv;
+COPY INTO raw.vending_machines
+FROM @public.s3load/vending_machines.csv;
 
 -- Load the CUSTOMER_DETAILS table
-COPY INTO vending_machine_dbt_db.raw.customer_details
-FROM @vending_machine_dbt_db.public.s3load/customer_details.csv;
+COPY INTO raw.customer_details
+FROM @public.s3load/customer_details.csv;
 
 -- setup completion note
 SELECT 'vending_machine_dbt_db setup is now complete' AS note;
