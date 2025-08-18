@@ -1,9 +1,9 @@
 version: 2
 
 sources:
-  - name: vending_dbt_db
+  - name: vending_machine_dbt_db
     description: 'Raw source data for vending machine transactions and related feedback.'
-    database: vending_dbt_db
+    database: vending_machine_dbt_db
     schema: RAW
     tables:
       - name: VENDING_TRANSACTIONS
