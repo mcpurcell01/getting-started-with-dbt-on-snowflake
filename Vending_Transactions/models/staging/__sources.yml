@@ -1,0 +1,99 @@
+version: 2
+
+sources:
+  - name: vending_dbt_db
+    description: 'Raw source data for vending machine transactions and related feedback.'
+    database: vending_dbt_db
+    schema: RAW
+    tables:
+      - name: VENDING_TRANSACTIONS
+        description: 'Raw data for each completed vending machine transaction.'
+        columns:
+          - name: TRANSACTION_ID
+            description: 'The unique identifier for each transaction.'
+            data_tests:
+              - not_null
+              - unique
+          - name: VENDING_MACHINE_ID
+            description: 'The machine where the transaction occurred.'
+            data_tests:
+              - not_null
+          - name: TRANSACTION_TIMESTAMP
+            description: 'The timestamp of the transaction.'
+            data_tests:
+              - not_null
+              - dbt_utils.expression_is_true:
+                  expression: "{{ column_name }} <= current_timestamp()"
+          - name: PRODUCT_ID
+            description: 'The product purchased.'
+            data_tests:
+              - not_null
+          - name: QUANTITY
+            description: 'The number of units of the product purchased.'
+            data_tests:
+              - not_null
+              - dbt_utils.accepted_range:
+                  min_value: 1
+                  inclusive: true
+          - name: TRANSACTION_TOTAL_AMOUNT
+            description: 'The total amount of the transaction.'
+            data_tests:
+              - not_null
+      - name: PRODUCT_DETAILS
+        description: 'Reference data for each product sold.'
+        columns:
+          - name: PRODUCT_ID
+            description: 'The unique identifier for each product.'
+            data_tests:
+              - not_null
+              - unique
+          - name: PRODUCT_NAME
+            description: 'The name of the product.'
+            data_tests:
+              - not_null
+          - name: PRODUCT_CATEGORY
+            description: 'The category of the product.'
+            data_tests:
+              - not_null
+          - name: UNIT_PRICE
+            description: 'The price per unit of the product.'
+      - name: SURVEY_FEEDBACK
+        description: 'Raw data from customer satisfaction surveys.'
+        columns:
+          - name: SURVEY_ID
+            description: 'The unique identifier for the survey record.'
+            data_tests:
+              - not_null
+              - unique
+          - name: TRANSACTION_ID
+            description: 'The transaction linked to the survey.'
+          - name: CUSTOMER_ID
+            description: 'The customer who completed the survey.'
+          - name: SATISFACTION_SCORE
+            description: 'The customer satisfaction score (e.g., 1-5).'
+            data_tests:
+              - not_null
+      - name: VENDING_MACHINES
+        description: 'Reference data for each vending machine.'
+        columns:
+          - name: VENDING_MACHINE_ID
+            description: 'The unique identifier for each vending machine.'
+            data_tests:
+              - not_null
+              - unique
+          - name: LOCATION_CITY
+            description: 'The city where the machine is located.'
+          - name: REGION
+            description: 'The region where the machine is located.'
+      - name: CUSTOMER_DETAILS
+        description: 'Details about the customers who used the vending machines.'
+        columns:
+          - name: CUSTOMER_ID
+            description: 'The unique identifier for each customer.'
+            data_tests:
+              - not_null
+              - unique
+          - name: AGE
+            description: 'The age of the customer.'
+          - name: GENDER
+            description: 'The gender of the customer.'
