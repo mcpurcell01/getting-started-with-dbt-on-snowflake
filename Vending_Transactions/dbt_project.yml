@@ -1,8 +1,8 @@
 ## Project
-name: vending_dbt
+name: vending_machine_dbt
 version: "1.0"
 config-version: 2
-profile: vending_dbt
+profile: vending_machine_dbt
 
 ## Sources
 model-paths: [models]
