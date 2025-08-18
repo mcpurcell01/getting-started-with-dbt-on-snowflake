@@ -9,4 +9,4 @@ SELECT
     transaction_total_amount,
     payment_method,
     customer_id
-FROM {{ source('vending_dbt_db', 'VENDING_TRANSACTIONS') }}
+FROM {{ source('vending_machine_dbt_db', 'VENDING_TRANSACTIONS') }}
