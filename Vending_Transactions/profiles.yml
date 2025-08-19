@@ -5,15 +5,15 @@ vending_machine_dbt:
       type: snowflake
       account: 'not needed'
       user: 'not needed'
-      role: accountadmin
-      database: INSTRUCTOR1_vending_machine_dbt_db
+      role: de_role
+      database: INSTRUCTOR2_DB_vending_machine_dbt_db
       schema: dev
-      warehouse: INSTRUCTOR1_vending_machine_dbt_wh
+      warehouse: INSTRUCTOR2_DB_VENDING_MACHINE_DBT_WH
     prod:
       type: snowflake
       account: 'not needed'
       user: 'not needed'
-      role: accountadmin
-      database: INSTRUCTOR1_vending_machine_dbt_db
+      role: de_role
+      database: INSTRUCTOR2_DB_vending_machine_dbt_db
       schema: prod
-      warehouse: INSTRUCTOR1_vending_machine_dbt_wh
+      warehouse: INSTRUCTOR2_DB_vending_machine_dbt_wh

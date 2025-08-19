@@ -1,10 +1,25 @@
 -- What is the total revenue per product category?
-USE WAREHOUSE INSTRUCTOR1_VENDING_MACHINE_DBT_WH;
+
+-- Set a variable to store the current user's name
+use role de_role;
+
+SET CURRENT_USER_NAME = (SELECT CURRENT_USER());
+
+set wh_name = ($CURRENT_USER_NAME || '_vending_machine_dbt_wh');
+set db_name = ($CURRENT_USER_NAME || '_vending_machine_dbt_db');
+
+-- Set the context to use the unique warehouse
+USE WAREHOUSE IDENTIFIER($wh_name);
+
+-- All subsequent schemas and tables will be created within this unique database,
+-- so you don't need to add the user name to their names.
+USE DATABASE IDENTIFIER($db_name);
+
 SELECT
     pd.product_category,
     SUM(vt.transaction_total_amount) AS total_revenue
-FROM INSTRUCTOR1_vending_machine_dbt_db.raw.vending_transactions vt
-JOIN INSTRUCTOR1_vending_machine_dbt_db.raw.product_details pd
+FROM raw.vending_transactions vt
+JOIN raw.product_details pd
     ON vt.product_id = pd.product_id
 GROUP BY pd.product_category
 ORDER BY total_revenue DESC;
@@ -13,8 +28,8 @@ ORDER BY total_revenue DESC;
 SELECT
     pd.product_name,
     SUM(vt.quantity) AS total_quantity_sold
-FROM INSTRUCTOR1_vending_machine_dbt_db.raw.vending_transactions vt
-JOIN INSTRUCTOR1_vending_machine_dbt_db.raw.product_details pd
+FROM raw.vending_transactions vt
+JOIN raw.product_details pd
     ON vt.product_id = pd.product_id
 GROUP BY pd.product_name
 ORDER BY total_quantity_sold DESC
@@ -30,8 +45,8 @@ SELECT
         ELSE '55+'
     END AS age_group,
     AVG(sf.satisfaction_score) AS average_satisfaction
-FROM INSTRUCTOR1_vending_machine_dbt_db.raw.survey_feedback sf
-JOIN INSTRUCTOR1_vending_machine_dbt_db.raw.customer_details c
+FROM raw.survey_feedback sf
+JOIN raw.customer_details c
     ON sf.customer_id = c.customer_id
 GROUP BY age_group
 ORDER BY age_group;
