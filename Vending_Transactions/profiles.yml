@@ -1,0 +1,19 @@
+vending_machine_dbt:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: 'not needed'
+      user: 'not needed'
+      role: accountadmin
+      database: INSTRUCTOR1_vending_machine_dbt_db
+      schema: dev
+      warehouse: INSTRUCTOR1_vending_machine_dbt_wh
+    prod:
+      type: snowflake
+      account: 'not needed'
+      user: 'not needed'
+      role: accountadmin
+      database: INSTRUCTOR1_vending_machine_dbt_db
+      schema: prod
+      warehouse: INSTRUCTOR1_vending_machine_dbt_wh
