@@ -23,3 +23,6 @@ models:
       +materialized: view
     mart:
       +materialized: table
+
+seeds:
+  +schema: seeds
