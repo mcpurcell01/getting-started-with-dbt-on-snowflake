@@ -6,14 +6,14 @@ vending_machine_dbt:
       account: 'not needed'
       user: 'not needed'
       role: de_role
-      database: INSTRUCTOR2_DB_vending_machine_dbt_db
+      database: [LOGIN]_vending_machine_dbt_db
       schema: dev
-      warehouse: INSTRUCTOR2_DB_VENDING_MACHINE_DBT_WH
+      warehouse: [LOGIN]_VENDING_MACHINE_DBT_WH
     prod:
       type: snowflake
       account: 'not needed'
       user: 'not needed'
       role: de_role
-      database: INSTRUCTOR2_DB_vending_machine_dbt_db
+      database: [LOGIN]_vending_machine_dbt_db
       schema: prod
-      warehouse: INSTRUCTOR2_DB_vending_machine_dbt_wh
+      warehouse: [LOGIN]_vending_machine_dbt_wh
